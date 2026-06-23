@@ -36,11 +36,17 @@ def encode_string(text, stoi):
     # TODO: map each char in text through stoi (via encode_char) into a list of ids
     return [encode_char(ch, stoi) for ch in text]
 
-# Step 6 - decode_int (not yet solved)
-# TODO: implement
+# Step 6 - decode_int
+def decode_int(token_id, itos):
+    """Return the single character mapped to token_id by itos."""
+    # TODO: look up the character for token_id in the itos dict
+    return itos[token_id]
 
-# Step 7 - decode_ids (not yet solved)
-# TODO: implement
+# Step 7 - decode_ids
+def decode_ids(ids, itos):
+    """Decode a list of token ids into a string using itos."""
+    # TODO: map each id through decode_int and join the characters into one string.
+    return "".join([decode_int(id, itos) for id in ids])
 
 # Step 8 - make_1d_array (not yet solved)
 # TODO: implement
