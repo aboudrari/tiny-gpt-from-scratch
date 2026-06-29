@@ -267,8 +267,10 @@ def read_text_file(text_blob):
         raise ValueError("Empty")
     return text_blob
 
-# Step 35 - encode_corpus_to_int_array (not yet solved)
-# TODO: implement
+# Step 35 - encode_corpus_to_int_array
+def encode_corpus_to_int_array(text, stoi):
+    result = encode_string(text, stoi)
+    return np.array(result, dtype=np.int64)
 
 # Step 36 - pick_split_point (not yet solved)
 # TODO: implement
