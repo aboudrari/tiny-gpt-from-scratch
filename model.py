@@ -382,7 +382,8 @@ import numpy as np
 
 def add_one_smoothing(n_matrix):
     """Return n_matrix with every entry incremented by 1 (Laplace smoothing)."""
-    # TODO: apply +1 Laplace smoothing to the bigram count matrix
+    # Every bigram needs at least a tiny probability so the model can generate any character, 
+    # not get stuck on ones it never saw in training.
     return n_matrix + 1
 
 # Step 49 - row_sums_of_counts (not yet solved)
