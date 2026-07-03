@@ -398,8 +398,12 @@ def normalize_counts_to_probs(n_matrix):
     # you need to divide n_matrix by the row sums 
     return n_matrix / row_sums_of_counts(n_matrix)
 
-# Step 51 - sample_next_token (not yet solved)
-# TODO: implement
+# Step 51 - sample_next_token
+def sample_next_token(p_matrix, current_id, rng):
+    """Sample the next token id from P[current_id] using rng."""
+    # You have a row of probabilities like [0.1, 0.6, 0.3] — these are the chances of each next token. 
+    #You need to randomly pick one token according to those probabilities.
+    return rng.choice(len(p_matrix[current_id]), p=p_matrix[current_id])
 
 # Step 52 - generate_sequence (not yet solved)
 # TODO: implement
