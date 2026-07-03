@@ -442,6 +442,7 @@ def sum_negative_log_probs(p_matrix, data):
 # Step 56 - average_nll
 def average_nll(p_matrix, data):
     # TODO: return mean negative log likelihood per bigram over consecutive pairs in data.
+    # we used -1 because you pair each token with the next one, so the last token has no pair
     n = len(data) - 1
     return sum_negative_log_probs(p_matrix, data) / n
 
