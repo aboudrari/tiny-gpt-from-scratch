@@ -463,8 +463,17 @@ def scale_w_small(w_matrix, scale):
     # TODO: return a new array equal to w_matrix multiplied by scale
     return w_matrix * scale
 
-# Step 59 - one_hot_encode_batch (not yet solved)
-# TODO: implement
+# Step 59 - one_hot_encode_batch
+import numpy as np
+
+def one_hot_encode_batch(ids, vocab_size):
+    """Convert a 1D array of token ids into a (N, vocab_size) one-hot matrix."""
+    # each token gets a row where everything is 0 except one position which is 1. 
+    #That position is the token's index:
+    zeros = make_2d_zeros(len(ids), vocab_size)
+    for i in range(len(ids)):
+        zeros[i][ids[i]] = 1.0
+    return zeros
 
 # Step 60 - forward_logits_onehot (not yet solved)
 # TODO: implement
