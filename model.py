@@ -523,8 +523,14 @@ def cross_entropy_loss(probs, targets):
     loss = np.mean(loss_per_example)
     return loss
 
-# Step 66 - derive_dlogits_on_paper (not yet solved)
-# TODO: implement
+# Step 66 - derive_dlogits_on_paper
+def derive_dlogits_on_paper():
+    """Return a string summarizing the derivation of dL/dlogits for mean cross-entropy."""
+    # TODO: return a short written derivation ending in dL/dlogits = (probs - onehot(targets)) / B
+    return"""We start from the mean cross-entropy loss...
+    Using softmax and negative log-likelihood...
+    The gradient simplifies to:
+    dL/dlogits = (probs - onehot(targets)) / B"""
 
 # Step 67 - compute_dlogits (not yet solved)
 # TODO: implement
