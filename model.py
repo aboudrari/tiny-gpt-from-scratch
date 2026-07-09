@@ -564,8 +564,13 @@ def compute_dw_scatter_add(ids, dlogits, vocab_size):
     np.add.at(dw, ids, dlogits)             # step 2: for each id, add dlogits row into dw
     return dw                                # step 3: return
 
-# Step 70 - sgd_update_w (not yet solved)
-# TODO: implement
+# Step 70 - sgd_update_w
+import numpy as np
+
+def sgd_update_w(w, dw, learning_rate):
+    """Apply one SGD step: return w - learning_rate * dw as a new array."""
+    # TODO: subtract the scaled gradient from the weights and return the new matrix
+    return w - learning_rate * dw
 
 # Step 71 - run_one_training_step (not yet solved)
 # TODO: implement
