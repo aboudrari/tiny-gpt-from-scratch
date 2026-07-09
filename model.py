@@ -554,8 +554,15 @@ def derive_dw_on_paper():
         "Implementation: scatter-add dlogits rows into dW at indices ids."
     )
 
-# Step 69 - compute_dw_scatter_add (not yet solved)
-# TODO: implement
+# Step 69 - compute_dw_scatter_add
+import numpy as np
+
+def compute_dw_scatter_add(ids, dlogits, vocab_size):
+    """Scatter-add dlogits rows into dW at positions given by ids."""
+    # TODO: build a (vocab_size, vocab_size) dW and accumulate dlogits[b] into row ids[b].
+    dw = np.zeros((vocab_size, dlogits.shape[1]))  # step 1: zeros matrix
+    np.add.at(dw, ids, dlogits)             # step 2: for each id, add dlogits row into dw
+    return dw                                # step 3: return
 
 # Step 70 - sgd_update_w (not yet solved)
 # TODO: implement
