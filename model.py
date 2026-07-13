@@ -632,8 +632,12 @@ def derive_linear_dw_on_paper():
     # TODO: return notes that include the final identity dL/dW = X.T @ dY
     return "Y = X @ W\ndL/dW = X.T @ dY\nshapes: X (B, D_in), dY (B, D_out) -> dL/dW (D_in, D_out)\nX.T has shape (D_in, B) and dY has shape (B, D_out), so their product is (D_in, D_out)."
 
-# Step 77 - linear_backward_dx (not yet solved)
-# TODO: implement
+# Step 77 - linear_backward_dx
+def linear_backward_dx(dy, cache):
+    # TODO: compute the gradient of the loss w.r.t. the linear layer input X given dy and cache
+    
+    dL_dX = dy @ cache['w'].T
+    return dL_dX
 
 # Step 78 - linear_backward_dw (not yet solved)
 # TODO: implement
