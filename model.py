@@ -718,8 +718,14 @@ def layernorm_forward_variance(x, mean):
     variance = sum_keepdims((x - mean)**2, axis=-1) / D
     return variance
 
-# Step 86 - layernorm_forward_normalize (not yet solved)
-# TODO: implement
+# Step 86 - layernorm_forward_normalize
+import numpy as np
+
+def layernorm_forward_normalize(x, mean, var, eps):
+    """Normalize each row of x to zero mean and unit variance."""
+    # TODO: subtract the per-row mean and divide by sqrt(var + eps)
+    normalized_row = (x - mean) / np.sqrt(var+eps)
+    return normalized_row
 
 # Step 87 - layernorm_forward_affine (not yet solved)
 # TODO: implement
