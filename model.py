@@ -813,11 +813,10 @@ def create_token_embedding(vocab_size, d_model, scale=0.02):
 
 # Step 93 - token_embedding_forward
 def token_embedding_forward(token_ids, embedding_matrix):
-
-    out = E[ids] # shape (B, T, d_model)
+    out = embedding_matrix[token_ids]
     cache = {
-    'token_ids': ids,
-    'vocab_size': E.shape[0]
+        'token_ids': token_ids,
+        'vocab_size': embedding_matrix.shape[0]
     }
     return out, cache
 
