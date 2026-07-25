@@ -813,16 +813,7 @@ def create_token_embedding(vocab_size, d_model, scale=0.02):
 
 # Step 93 - token_embedding_forward
 def token_embedding_forward(token_ids, embedding_matrix):
-    """Look up token embeddings for a batch of integer token ids.
 
-    Inputs:
-        token_ids: ndarray of shape (B, T), dtype int
-        embedding_matrix: ndarray of shape (V, d_model)
-    Returns:
-        out: ndarray of shape (B, T, d_model)
-        cache: dict with keys 'token_ids', 'vocab_size'
-    """
-    # TODO: look up the embedding row for each token id and build the cache
     out = E[ids] # shape (B, T, d_model)
     cache = {
     'token_ids': ids,
