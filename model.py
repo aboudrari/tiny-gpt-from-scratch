@@ -854,8 +854,14 @@ def add_token_and_positional_embeddings(token_emb, pos_emb):
     # TODO: combine token and positional embeddings into a single (B,T,d_model) tensor
     return token_emb + pos_emb
 
-# Step 98 - embedding_sum_backward (not yet solved)
-# TODO: implement
+# Step 98 - embedding_sum_backward
+def embedding_sum_backward(d_out):
+    """Backprop through H = token_emb + pos_emb (with broadcasting over batch)."""
+    # TODO: route d_out to both branches, reducing over the batch axis for pos_emb.
+    return {
+        "d_token_emb": d_out,
+        "d_pos_emb": np.sum(d_out, axis=0)
+    }
 
 # Step 99 - create_qkv_projections (not yet solved)
 # TODO: implement
