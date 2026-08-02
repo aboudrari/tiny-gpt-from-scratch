@@ -909,8 +909,13 @@ import numpy as np
 def compute_attention_scores(q, k):
     return q @ k.transpose(0, 2, 1)
 
-# Step 104 - scale_attention_scores (not yet solved)
-# TODO: implement
+# Step 104 - scale_attention_scores
+import numpy as np
+
+def scale_attention_scores(scores, d_head):
+    """Rescale (B, T, T) attention scores by a function of d_head."""
+    # TODO: rescale the scores so their variance does not grow with d_head.
+    return scores / np.sqrt(d_head)
 
 # Step 105 - build_causal_mask (not yet solved)
 # TODO: implement
