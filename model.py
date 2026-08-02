@@ -903,8 +903,11 @@ def compute_key(x, w_k):
 def compute_value(x, w_v):
     return x @ w_v
 
-# Step 103 - compute_attention_scores (not yet solved)
-# TODO: implement
+# Step 103 - compute_attention_scores
+import numpy as np
+
+def compute_attention_scores(q, k):
+    return q @ k.transpose(0, 2, 1)
 
 # Step 104 - scale_attention_scores (not yet solved)
 # TODO: implement
