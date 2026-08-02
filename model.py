@@ -899,8 +899,9 @@ import numpy as np
 def compute_key(x, w_k):
     return x @ w_k
 
-# Step 102 - compute_value (not yet solved)
-# TODO: implement
+# Step 102 - compute_value
+def compute_value(x, w_v):
+    return x @ w_v
 
 # Step 103 - compute_attention_scores (not yet solved)
 # TODO: implement
