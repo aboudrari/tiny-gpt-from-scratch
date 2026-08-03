@@ -1020,8 +1020,23 @@ import numpy as np
 def scale_scores_backward(d_scaled_scores, d_head):
     return d_scaled_scores / np.sqrt(d_head)
 
-# Step 114 - qk_scores_backward (not yet solved)
-# TODO: implement
+# Step 114 - qk_scores_backward
+def qk_scores_backward(d_scores, cache):
+    q = cache["q"]
+    k = cache["k"]
+
+    d_q = d_scores @ k
+
+    d_k = (
+        q.transpose(0,2,1)
+        @
+        d_scores
+    ).transpose(0,2,1)
+
+    return {
+        "d_q": d_q,
+        "d_k": d_k
+    }
 
 # Step 115 - qkv_projection_backward (not yet solved)
 # TODO: implement
