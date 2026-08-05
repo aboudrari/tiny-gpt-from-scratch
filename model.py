@@ -1102,6 +1102,9 @@ def reshape_to_heads(x, n_heads, d_head):
     return x.reshape(B, T, n_heads, d_head)
 
 # Step 120 - transpose_heads_to_front
+import numpy as np 
+
+
 def transpose_heads_to_front(x):
     return np.ascontiguousarray(x.transpose(0, 2, 1, 3))
 
