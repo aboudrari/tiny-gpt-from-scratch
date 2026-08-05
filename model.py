@@ -1090,8 +1090,11 @@ def create_multihead_qkv_projections(d_model, scale=0.02):
         )
     }
 
-# Step 118 - create_multihead_output_projection (not yet solved)
-# TODO: implement
+# Step 118 - create_multihead_output_projection
+def create_multihead_output_projection(d_model, scale=0.02):
+    Wo = make_2d_random(d_model, d_model, seed=0)
+    Wo = scale_w_small(Wo, scale)
+    return Wo
 
 # Step 119 - reshape_to_heads (not yet solved)
 # TODO: implement
