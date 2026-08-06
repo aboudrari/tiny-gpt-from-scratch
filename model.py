@@ -1113,8 +1113,11 @@ def get_multihead_n_heads(config):
     """Return the number of attention heads from a multi-head config."""
     return config["n_heads"]
 
-# Step 122 - get_multihead_sequence_length (not yet solved)
-# TODO: implement
+# Step 122 - get_multihead_sequence_length
+def get_multihead_sequence_length(x):
+    """Return the sequence length T from an activation tensor."""
+    shape = get_array_shape(x)
+    return shape[1]
 
 # Step 123 - compute_d_head (not yet solved)
 # TODO: implement
