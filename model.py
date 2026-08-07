@@ -1155,8 +1155,9 @@ def multihead_weighted_sum(weights, v_heads):
     """
     return np.matmul(weights, v_heads)
 
-# Step 126 - transpose_heads_to_back (not yet solved)
-# TODO: implement
+# Step 126 - transpose_heads_to_back
+def transpose_heads_to_back(x):
+    return np.transpose(x, (0, 2, 1, 3))
 
 # Step 127 - get_multihead_output_sequence_length (not yet solved)
 # TODO: implement
