@@ -1142,8 +1142,18 @@ def multihead_masked_softmax_scores(scores, mask):
 
     return weights
 
-# Step 125 - multihead_weighted_sum (not yet solved)
-# TODO: implement
+# Step 125 - multihead_weighted_sum
+import numpy as np
+
+def multihead_weighted_sum(weights, v_heads):
+    """
+    weights : (B, n_heads, T, T)
+    v_heads : (B, n_heads, T, d_head)
+
+    returns:
+        (B, n_heads, T, d_head)
+    """
+    return np.matmul(weights, v_heads)
 
 # Step 126 - transpose_heads_to_back (not yet solved)
 # TODO: implement
