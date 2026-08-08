@@ -1217,8 +1217,18 @@ def ffn_activation_forward(h1):
         }
     )
 
-# Step 133 - ffn_linear_two_forward (not yet solved)
-# TODO: implement
+# Step 133 - ffn_linear_two_forward
+def ffn_linear_two_forward(a1, w2, b2):
+    linear = linear_forward(a1, w2)
+    biased = bias_add_forward(linear["y"], b2)
+
+    return {
+        "h2": biased["y"],
+        "cache": {
+            "a1": a1,
+            "w2": w2,
+        }
+    }
 
 # Step 134 - ffn_backward (not yet solved)
 # TODO: implement
