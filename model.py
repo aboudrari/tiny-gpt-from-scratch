@@ -1230,8 +1230,51 @@ def ffn_linear_two_forward(a1, w2, b2):
         }
     }
 
-# Step 134 - ffn_backward (not yet solved)
-# TODO: implement
+# Step 134 - ffn_backward
+def ffn_backward(d_out, cache):
+    x = cache["x"]
+    w1 = cache["w1"]
+    h1 = cache["h1"]
+    a1 = cache["a1"]
+    w2 = cache["w2"]
+
+    x_flat = x.reshape(-1, x.shape[-1])
+    h1_flat = h1.reshape(-1, h1.shape[-1])
+    a1_flat = a1.reshape(-1, a1.shape[-1])
+    d_out_flat = d_out.reshape(-1, d_out.shape[-1])
+
+    linear2_cache = {
+        "x": a1_flat,
+        "w": w2,
+    }
+
+    da1 = linear_backward_dx(d_out_flat, linear2_cache)
+    dw2 = linear_backward_dw(d_out_flat, linear2_cache)
+    db2 = bias_add_backward_db(d_out_flat, {})
+
+    dh1 = relu_backward(
+        da1,
+        {"x": h1_flat}
+    )
+
+    linear1_cache = {
+        "x": x_flat,
+        "w": w1,
+    }
+
+    dx = linear_backward_dx(dh1, linear1_cache)
+    dw1 = linear_backward_dw(dh1, linear1_cache)
+    db1 = bias_add_backward_db(dh1, {})
+
+    dx = dx.reshape(x.shape)
+
+    return {
+        "dx": dx,
+        "dw1": dw1,
+        "db1": db1,
+        "dw2": dw2,
+        "db2": db2,
+    }
 
 # Step 135 - residual_forward (not yet solved)
 # TODO: implement
