@@ -1313,11 +1313,167 @@ def pre_layernorm_sublayer_forward(x, ln_params, sublayer_fn, sublayer_params):
         "cache": cache,
     }
 
-# Step 138 - transformer_block_forward (not yet solved)
-# TODO: implement
+# Step 138 - transformer_block_forward
+def transformer_block_forward(x, block_params):
+    """
+    Run one pre-LN Transformer block.
 
-# Step 139 - transformer_block_backward (not yet solved)
-# TODO: implement
+    Structure:
+        x
+        │
+        ├── LayerNorm
+        │
+        ├── Multi-Head Self-Attention
+        │
+        └── Residual
+             │
+             ▼
+        h
+             │
+             ├── LayerNorm
+             │
+             ├── FFN
+             │
+             └── Residual
+                  │
+                  ▼
+                  y
+    """
+
+    # =========================================================
+    # 1. Attention branch
+    # =========================================================
+
+    # LayerNorm before Attention
+    ln1 = layernorm_forward_affine(
+        x,
+        block_params["ln1"]["gamma"],
+        block_params["ln1"]["beta"],
+        block_params["ln1"]["eps"],
+    )
+
+    # Multi-Head Self-Attention
+    attn = multihead_attention_forward(
+        ln1["y"],
+        block_params["attn"],
+    )
+
+    # Residual connection
+    attn_branch = residual_forward(
+        x,
+        attn["y"],
+    )
+
+    h = attn_branch["y"]
+
+    # =========================================================
+    # 2. FFN branch
+    # =========================================================
+
+    # LayerNorm before FFN
+    ln2 = layernorm_forward_affine(
+        h,
+        block_params["ln2"]["gamma"],
+        block_params["ln2"]["beta"],
+        block_params["ln2"]["eps"],
+    )
+
+    # Feed-Forward Network
+    ffn = ffn_forward(
+        ln2["y"],
+        block_params["ffn"],
+    )
+
+    # Residual connection
+    ffn_branch = residual_forward(
+        h,
+        ffn["y"],
+    )
+
+    y = ffn_branch["y"]
+
+    # =========================================================
+    # 3. Return output + cache
+    # =========================================================
+
+    return {
+        "y": y,
+        "cache": {
+            "attn_branch": {
+                "ln": ln1,
+                "sublayer": attn,
+                "residual": attn_branch,
+            },
+            "ffn_branch": {
+                "ln": ln2,
+                "sublayer": ffn,
+                "residual": ffn_branch,
+            },
+        },
+    }
+
+# Step 139 - transformer_block_backward
+def transformer_block_backward(d_y, cache, block_params):
+    cache = _complete_block_cache(cache, block_params)
+
+    # -------------------------
+    # FFN branch
+    # -------------------------
+
+    ffn_branch = cache['ffn_branch']
+
+    d_z2, ffn_grads = _ffn_sublayer_backward(
+        d_y,
+        ffn_branch['sublayer_cache'],
+        block_params['ffn']
+    )
+
+    d_h1_from_ffn, d_gamma2, d_beta2 = layernorm_backward_affine(
+        d_z2,
+        ffn_branch['ln_cache']
+    )
+
+    # Residual skip contribution
+    d_h1 = d_y + d_h1_from_ffn
+
+    # -------------------------
+    # Attention branch
+    # -------------------------
+
+    attn_branch = cache['attn_branch']
+
+    d_z1, attn_grads = _attn_sublayer_backward(
+        d_h1,
+        attn_branch['sublayer_cache'],
+        block_params['attn']
+    )
+
+    d_x_from_attn, d_gamma1, d_beta1 = layernorm_backward_affine(
+        d_z1,
+        attn_branch['ln_cache']
+    )
+
+    # Residual skip contribution
+    d_x = d_h1 + d_x_from_attn
+
+    # -------------------------
+    # Assemble gradients
+    # -------------------------
+
+    grads = {
+        'ln1': {
+            'gamma': d_gamma1,
+            'beta': d_beta1,
+        },
+        'ln2': {
+            'gamma': d_gamma2,
+            'beta': d_beta2,
+        },
+        'attn': attn_grads,
+        'ffn': ffn_grads,
+    }
+
+    return d_x, grads
 
 # Step 140 - stack_transformer_blocks (not yet solved)
 # TODO: implement
@@ -1340,8 +1496,33 @@ def pre_layernorm_sublayer_forward(x, ln_params, sublayer_fn, sublayer_params):
 # Step 146 - full_model_backward (not yet solved)
 # TODO: implement
 
-# Step 147 - initialize_adam_moments (not yet solved)
-# TODO: implement
+# Step 147 - initialize_adam_moments
+def initialize_adam_moments(model_params):
+    if isinstance(model_params, dict):
+        m = {}
+        v = {}
+
+        for key, value in model_params.items():
+            m[key], v[key] = initialize_adam_moments(value)
+
+        return m, v
+
+    elif isinstance(model_params, list):
+        m = []
+        v = []
+
+        for value in model_params:
+            m_value, v_value = initialize_adam_moments(value)
+            m.append(m_value)
+            v.append(v_value)
+
+        return m, v
+
+    elif isinstance(model_params, np.ndarray):
+        return np.zeros_like(model_params), np.zeros_like(model_params)
+
+    else:
+        return model_params, model_params
 
 # Step 148 - initialize_adam_step_counter (not yet solved)
 # TODO: implement
