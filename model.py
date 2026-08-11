@@ -1444,8 +1444,45 @@ def transformer_block_backward(d_y, cache, block_params):
 
     return d_x, grads
 
-# Step 140 - stack_transformer_blocks (not yet solved)
-# TODO: implement
+# Step 140 - stack_transformer_blocks
+# Step 140 - stack_transformer_blocks
+def stack_transformer_blocks(n_layers, d_model, n_heads, d_ff, scale=0.02):
+    # Pre-generate shared weight matrices with fixed seeds
+    Wq = scale_w_small(make_2d_random(d_model, d_model, seed=0), scale)
+    Wk = scale_w_small(make_2d_random(d_model, d_model, seed=1), scale)
+    Wv = scale_w_small(make_2d_random(d_model, d_model, seed=2), scale)
+    Wo = scale_w_small(make_2d_random(d_model, d_model, seed=3), scale)
+    W1 = scale_w_small(make_2d_random(d_model, d_ff,    seed=4), scale)
+    W2 = scale_w_small(make_2d_random(d_ff,    d_model, seed=5), scale)
+
+    blocks = []
+    for _ in range(n_layers):
+        block = {
+            'ln1': {
+                'gamma': np.ones(d_model),
+                'beta':  np.zeros(d_model),
+            },
+            'attn': {
+                'Wq': Wq.copy(),
+                'Wk': Wk.copy(),
+                'Wv': Wv.copy(),
+                'Wo': Wo.copy(),
+                'bo': np.zeros(d_model),
+            },
+            'ln2': {
+                'gamma': np.ones(d_model),
+                'beta':  np.zeros(d_model),
+            },
+            'ffn': {
+                'W1': W1.copy(),
+                'b1': np.zeros(d_ff),
+                'W2': W2.copy(),
+                'b2': np.zeros(d_model),
+            },
+        }
+        blocks.append(block)
+
+    return blocks
 
 # Step 141 - forward_through_all_blocks (not yet solved)
 # TODO: implement
