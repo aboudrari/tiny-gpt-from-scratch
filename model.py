@@ -1314,102 +1314,86 @@ def pre_layernorm_sublayer_forward(x, ln_params, sublayer_fn, sublayer_params):
     }
 
 # Step 138 - transformer_block_forward
+# Step 138 - transformer_block_forward
 def transformer_block_forward(x, block_params):
-    """
-    Run one pre-LN Transformer block.
+    
+    def multihead_self_attention_forward(x, params):
+        """Multi-head self-attention using steps 99-129."""
+        B, T, d_model = x.shape
+        n_heads = params['n_heads']
+        d_head  = d_model // n_heads
 
-    Structure:
-        x
-        │
-        ├── LayerNorm
-        │
-        ├── Multi-Head Self-Attention
-        │
-        └── Residual
-             │
-             ▼
-        h
-             │
-             ├── LayerNorm
-             │
-             ├── FFN
-             │
-             └── Residual
-                  │
-                  ▼
-                  y
-    """
+        Wq, Wk = params['Wq'], params['Wk']
+        Wv, Wo = params['Wv'], params['Wo']
+        bo     = params.get('bo', np.zeros(d_model))
 
-    # =========================================================
-    # 1. Attention branch
-    # =========================================================
+        # QKV projections  →  (B, T, d_model)
+        q = x @ Wq
+        k = x @ Wk
+        v = x @ Wv
 
-    # LayerNorm before Attention
-    ln1 = layernorm_forward_affine(
+        # Reshape to heads  →  (B, n_heads, T, d_head)
+        def to_heads(z):
+            return z.reshape(B, T, n_heads, d_head).transpose(0, 2, 1, 3)
+
+        q_h, k_h, v_h = to_heads(q), to_heads(k), to_heads(v)
+
+        # Scaled dot-product attention
+        scores  = q_h @ k_h.transpose(0, 1, 3, 2) / np.sqrt(d_head)
+        mask    = np.tril(np.ones((T, T), dtype=bool))
+        scores  = np.where(mask, scores, -np.inf)
+
+        # Stable softmax over last axis
+        scores -= np.max(scores, axis=-1, keepdims=True)
+        exp_s   = np.exp(scores)
+        # replace nan (0/0 from all-inf rows) with 0
+        attn    = np.where(np.isnan(exp_s / exp_s.sum(-1, keepdims=True)),
+                           0.0,
+                           exp_s / exp_s.sum(-1, keepdims=True))
+
+        # Weighted sum  →  merge heads  →  output projection + bias
+        out_h   = attn @ v_h                                        # (B, n_heads, T, d_head)
+        merged  = out_h.transpose(0, 2, 1, 3).reshape(B, T, d_model)
+        y       = merged @ Wo + bo
+
+        return {'y': y, 'cache': {}}
+
+    def ffn_forward(x, params):
+        """Two-layer FFN: ReLU(x @ W1 + b1) @ W2 + b2."""
+        w1 = params['w1']
+        b1 = params.get('b1', np.zeros(w1.shape[1]))
+        w2 = params['w2']
+        b2 = params.get('b2', np.zeros(w2.shape[1]))
+
+        h1 = np.maximum(0, x @ w1 + b1)
+        y  = h1 @ w2 + b2
+
+        return {'y': y, 'cache': {'x': x, 'h1': h1,
+                                   'w1': w1, 'b1': b1,
+                                   'w2': w2, 'b2': b2}}
+
+    # --- First sublayer: LN1 + Attention + Residual ---
+    attn_branch = pre_layernorm_sublayer_forward(
         x,
-        block_params["ln1"]["gamma"],
-        block_params["ln1"]["beta"],
-        block_params["ln1"]["eps"],
+        ln_params   = block_params['ln1'],
+        sublayer_fn = multihead_self_attention_forward,
+        sublayer_params = block_params['attn']
     )
 
-    # Multi-Head Self-Attention
-    attn = multihead_attention_forward(
-        ln1["y"],
-        block_params["attn"],
+    # --- Second sublayer: LN2 + FFN + Residual ---
+    ffn_branch = pre_layernorm_sublayer_forward(
+        attn_branch['y'],
+        ln_params   = block_params['ln2'],
+        sublayer_fn = ffn_forward,
+        sublayer_params = block_params['ffn']
     )
-
-    # Residual connection
-    attn_branch = residual_forward(
-        x,
-        attn["y"],
-    )
-
-    h = attn_branch["y"]
-
-    # =========================================================
-    # 2. FFN branch
-    # =========================================================
-
-    # LayerNorm before FFN
-    ln2 = layernorm_forward_affine(
-        h,
-        block_params["ln2"]["gamma"],
-        block_params["ln2"]["beta"],
-        block_params["ln2"]["eps"],
-    )
-
-    # Feed-Forward Network
-    ffn = ffn_forward(
-        ln2["y"],
-        block_params["ffn"],
-    )
-
-    # Residual connection
-    ffn_branch = residual_forward(
-        h,
-        ffn["y"],
-    )
-
-    y = ffn_branch["y"]
-
-    # =========================================================
-    # 3. Return output + cache
-    # =========================================================
 
     return {
-        "y": y,
-        "cache": {
-            "attn_branch": {
-                "ln": ln1,
-                "sublayer": attn,
-                "residual": attn_branch,
-            },
-            "ffn_branch": {
-                "ln": ln2,
-                "sublayer": ffn,
-                "residual": ffn_branch,
-            },
-        },
+        'y': ffn_branch['y'],
+        'cache': {
+            'attn_branch': attn_branch['cache'],
+            'ffn_branch':  ffn_branch['cache'],
+        }
     }
 
 # Step 139 - transformer_block_backward
