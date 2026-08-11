@@ -1398,12 +1398,11 @@ def transformer_block_forward(x, block_params):
 
 # Step 139 - transformer_block_backward
 def transformer_block_backward(d_y, cache, block_params):
-    cache = _complete_block_cache(cache, block_params)
+    # Rebuild a complete cache from the block input x
+    x = cache['attn_branch']['x']
+    cache = _complete_block_cache(x, block_params)
 
-    # -------------------------
-    # FFN branch
-    # -------------------------
-
+    # --- FFN branch ---
     ffn_branch = cache['ffn_branch']
 
     d_z2, ffn_grads = _ffn_sublayer_backward(
@@ -1417,13 +1416,9 @@ def transformer_block_backward(d_y, cache, block_params):
         ffn_branch['ln_cache']
     )
 
-    # Residual skip contribution
-    d_h1 = d_y + d_h1_from_ffn
+    d_h1 = d_y + d_h1_from_ffn   # residual skip
 
-    # -------------------------
-    # Attention branch
-    # -------------------------
-
+    # --- Attention branch ---
     attn_branch = cache['attn_branch']
 
     d_z1, attn_grads = _attn_sublayer_backward(
@@ -1437,24 +1432,14 @@ def transformer_block_backward(d_y, cache, block_params):
         attn_branch['ln_cache']
     )
 
-    # Residual skip contribution
-    d_x = d_h1 + d_x_from_attn
+    d_x = d_h1 + d_x_from_attn   # residual skip
 
-    # -------------------------
-    # Assemble gradients
-    # -------------------------
-
+    # --- Assemble grads ---
     grads = {
-        'ln1': {
-            'gamma': d_gamma1,
-            'beta': d_beta1,
-        },
-        'ln2': {
-            'gamma': d_gamma2,
-            'beta': d_beta2,
-        },
+        'ln1':  {'gamma': d_gamma1, 'beta': d_beta1},
+        'ln2':  {'gamma': d_gamma2, 'beta': d_beta2},
         'attn': attn_grads,
-        'ffn': ffn_grads,
+        'ffn':  ffn_grads,
     }
 
     return d_x, grads
