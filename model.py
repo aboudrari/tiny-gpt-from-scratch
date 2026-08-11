@@ -1540,21 +1540,21 @@ def lm_head_linear_forward(x, w_lm, b_lm):
 def full_model_forward(token_ids, model_params):
     B, T = token_ids.shape
 
-    # --- Embeddings ---
+    # Embeddings 
     tok_out, tok_cache = token_embedding_forward(token_ids, model_params['tok_emb'])
     pos_emb = slice_positional_embedding(model_params['pos_emb'], T)
     x = add_token_and_positional_embeddings(tok_out, pos_emb)
 
     emb_cache = {'tok_cache': tok_cache, 'pos_emb': pos_emb, 'token_ids': token_ids}
 
-    # --- Transformer blocks ---
+    # Transformer blocks 
     x, block_caches = forward_through_all_blocks(x, model_params['blocks'])
 
-    # --- Final LayerNorm ---
+    # Final LayerNorm 
     ln_f = model_params['ln_f']
     x, ln_f_cache = final_layernorm_forward(x, ln_f['gamma'], ln_f['beta'])
 
-    # --- LM head ---
+    #  LM head 
     lm = model_params['lm_head']
     lm_out = lm_head_linear_forward(x, lm['w_lm'], lm['b_lm'])
 
