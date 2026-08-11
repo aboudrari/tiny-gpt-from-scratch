@@ -1567,8 +1567,59 @@ def full_model_forward(token_ids, model_params):
 
     return lm_out['logits'], caches
 
-# Step 146 - full_model_backward (not yet solved)
-# TODO: implement
+# Step 146 - full_model_backward
+def full_model_backward(d_logits, caches, model_params):
+    # --- LM head backward ---
+    lm_cache = caches['lm_head']
+    x_lm  = lm_cache['x']
+    w_lm  = lm_cache['w_lm']
+    # linear: logits = x @ w_lm + b_lm
+    d_b_lm  = d_logits.sum(axis=(0, 1))          # (V,)
+    d_w_lm  = x_lm.reshape(-1, x_lm.shape[-1]).T @ d_logits.reshape(-1, d_logits.shape[-1])  # (d_model, V)
+    d_x_lm  = d_logits @ w_lm.T                  # (B, T, d_model)
+
+    # --- Final LayerNorm backward ---
+    ln_cache = caches['ln_f']
+    x_hat = ln_cache['x_hat']
+    var   = ln_cache['var']
+    gamma = ln_cache['gamma']
+    eps   = 1e-5
+    B, T, D = d_x_lm.shape
+
+    d_gamma = (d_x_lm * x_hat).sum(axis=(0, 1))  # (d_model,)
+    d_beta  = d_x_lm.sum(axis=(0, 1))             # (d_model,)
+
+    # backprop through normalize
+    dx_hat  = d_x_lm * gamma
+    std     = np.sqrt(var + eps)                   # (B, T, 1)
+    d_x_ln  = (1.0 / std) * (
+        dx_hat
+        - dx_hat.mean(axis=-1, keepdims=True)
+        - x_hat * (dx_hat * x_hat).mean(axis=-1, keepdims=True)
+    )
+
+    # --- Transformer blocks backward ---
+    d_emb, block_grads = backward_through_all_blocks(d_x_ln, caches['blocks'], model_params['blocks'])
+
+    # --- Embedding sum backward ---
+    emb_cache = caches['emb']
+    token_ids = emb_cache['tok_cache']['token_ids']
+    seq_len   = emb_cache.get('seq_len', token_ids.shape[1])
+
+    vocab_size, d_model = model_params['tok_emb'].shape
+    d_tok_emb = np.zeros((vocab_size, d_model))
+    np.add.at(d_tok_emb, token_ids, d_emb)         # scatter-add
+
+    d_pos_emb = np.zeros_like(model_params['pos_emb'])
+    d_pos_emb[:seq_len] = d_emb.sum(axis=0)        # (T, d_model)
+
+    return {
+        'tok_emb': d_tok_emb,
+        'pos_emb': d_pos_emb,
+        'blocks':  block_grads,
+        'ln_f':    {'gamma': d_gamma, 'beta': d_beta},
+        'lm_head': {'w_lm': d_w_lm,  'b_lm': d_b_lm},
+    }
 
 # Step 147 - initialize_adam_moments
 def initialize_adam_moments(model_params):
