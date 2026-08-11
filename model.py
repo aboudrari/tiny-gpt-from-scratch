@@ -1496,8 +1496,16 @@ def forward_through_all_blocks(x, blocks):
     
     return y, caches
 
-# Step 142 - backward_through_all_blocks (not yet solved)
-# TODO: implement
+# Step 142 - backward_through_all_blocks
+def backward_through_all_blocks(d_y, caches, blocks):
+    all_grads = [None] * len(blocks)
+    d_x = d_y
+    
+    for i in reversed(range(len(blocks))):
+        d_x, grads_block = transformer_block_backward(d_x, caches[i], blocks[i])
+        all_grads[i] = grads_block
+    
+    return d_x, all_grads
 
 # Step 143 - final_layernorm_forward (not yet solved)
 # TODO: implement
