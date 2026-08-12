@@ -1756,8 +1756,25 @@ def wire_full_training_loop(params, train_ids, val_ids, block_size, batch_size,
 
     return params, history
 
-# Step 155 - logging_and_validation_loss (not yet solved)
-# TODO: implement
+# Step 155 - logging_and_validation_loss
+# Step 155 - logging_and_validation_loss
+def logging_and_validation_loss(params, val_ids, block_size, batch_size, n_eval_batches):
+    rng = np.random.default_rng(0)   # fixed seed for reproducibility
+    total_loss = 0.0
+
+    for _ in range(n_eval_batches):
+        X, Y = get_batch(val_ids, block_size, batch_size, rng)
+
+        logits, _ = full_model_forward(X, params)
+
+        B, T, V   = logits.shape
+        targets   = Y.flatten()
+        probs     = stable_softmax_2d_rowwise(logits.reshape(-1, V))
+        loss      = cross_entropy_loss(probs, targets)
+
+        total_loss += float(loss)
+
+    return total_loss / n_eval_batches
 
 # Step 156 - encode_prompt (not yet solved)
 # TODO: implement
