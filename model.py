@@ -1788,8 +1788,12 @@ def crop_context_to_block_size(context_ids, block_size):
     # TODO: keep only the most recent block_size tokens of a (1, T) context
     return ctx[:, -block_size:]
 
-# Step 158 - forward_to_get_logits (not yet solved)
-# TODO: implement
+# Step 158 - forward_to_get_logits
+def forward_to_get_logits(params, context_ids):
+    """Run the full model forward and return only the logits tensor."""
+    # TODO: drive the full Tiny GPT forward pipeline and return logits of shape (1, T, V).
+    logits, _ = full_model_forward(ctx, params)
+    return logits
 
 # Step 159 - take_last_position_logits (not yet solved)
 # TODO: implement
