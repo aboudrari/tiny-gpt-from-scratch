@@ -1691,8 +1691,70 @@ def adam_parameter_update(param, m_hat, v_hat, lr, eps):
     # TODO: return the updated parameter array of the same shape as param.
     return param - lr * m_hat / (np.sqrt(v_hat) + eps)
 
-# Step 154 - wire_full_training_loop (not yet solved)
-# TODO: implement
+# Step 154 - wire_full_training_loop
+# Step 154 - wire_full_training_loop
+def wire_full_training_loop(params, train_ids, val_ids, block_size, batch_size,
+                             n_steps, lr, betas, eps):
+    rng = np.random.default_rng(42)
+    beta1, beta2 = betas
+    history = []
+
+    def zeros_like_tree(tree):
+        if isinstance(tree, np.ndarray):
+            return np.zeros_like(tree)
+        elif isinstance(tree, dict):
+            return {k: zeros_like_tree(v) for k, v in tree.items()}
+        elif isinstance(tree, list):
+            return [zeros_like_tree(v) for v in tree]
+        return tree
+
+    m = zeros_like_tree(params)
+    v = zeros_like_tree(params)
+
+    def adam_update(param, grad, m_node, v_node, t):
+        if isinstance(param, np.ndarray):
+            m_node = beta1 * m_node + (1 - beta1) * grad
+            v_node = beta2 * v_node + (1 - beta2) * grad ** 2
+            m_hat  = m_node / (1 - beta1 ** t)
+            v_hat  = v_node / (1 - beta2 ** t)
+            param  = param - lr * m_hat / (np.sqrt(v_hat) + eps)
+            return param, m_node, v_node
+        elif isinstance(param, dict):
+            for k in param:
+                if k in grad:
+                    param[k], m_node[k], v_node[k] = adam_update(
+                        param[k], grad[k], m_node[k], v_node[k], t)
+            return param, m_node, v_node
+        elif isinstance(param, list):
+            for i in range(len(param)):
+                if i < len(grad) and grad[i] is not None:
+                    param[i], m_node[i], v_node[i] = adam_update(
+                        param[i], grad[i], m_node[i], v_node[i], t)
+            return param, m_node, v_node
+        return param, m_node, v_node
+
+    for step in range(n_steps):
+        X, Y = get_batch(train_ids, block_size, batch_size, rng)
+
+        logits, caches = full_model_forward(X, params)
+
+        B, T, V = logits.shape
+        targets      = Y.flatten()
+        logits_2d    = logits.reshape(-1, V)
+        probs        = stable_softmax_2d_rowwise(logits_2d)
+        loss         = cross_entropy_loss(probs, targets)
+
+        d_logits_2d  = softmax_cross_entropy_backward(probs, targets)
+        d_logits     = d_logits_2d.reshape(B, T, V)
+
+        grads = full_model_backward(d_logits, caches, params)
+
+        t = step + 1
+        params, m, v = adam_update(params, grads, m, v, t)
+
+        history.append({'step': step, 'train_loss': float(loss)})
+
+    return params, history
 
 # Step 155 - logging_and_validation_loss (not yet solved)
 # TODO: implement
