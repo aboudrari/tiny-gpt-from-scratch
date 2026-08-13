@@ -1786,7 +1786,7 @@ def encode_prompt(prompt, stoi):
 # Step 157 - crop_context_to_block_size
 def crop_context_to_block_size(context_ids, block_size):
     # TODO: keep only the most recent block_size tokens of a (1, T) context
-    return ctx[:, -block_size:]
+    return context_ids[:, -block_size:]
 
 # Step 158 - forward_to_get_logits
 def forward_to_get_logits(params, context_ids):
