@@ -1792,7 +1792,7 @@ def crop_context_to_block_size(context_ids, block_size):
 def forward_to_get_logits(params, context_ids):
     """Run the full model forward and return only the logits tensor."""
     # TODO: drive the full Tiny GPT forward pipeline and return logits of shape (1, T, V).
-    logits, _ = full_model_forward(ctx, params)
+    logits, _ = full_model_forward(context_ids, params)
     return logits
 
 # Step 159 - take_last_position_logits
