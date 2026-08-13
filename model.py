@@ -1828,11 +1828,30 @@ def sample_one_token(probs, rng):
     # TODO: draw a single next-token id from the categorical distribution probs[0]
     return int(rng.choice(probs.shape[1], p=probs[0]))
 
-# Step 164 - append_token_to_sequence (not yet solved)
-# TODO: implement
+# Step 164 - append_token_to_sequence
+import numpy as np
 
-# Step 165 - generation_loop_for_n_steps (not yet solved)
-# TODO: implement
+def append_token_to_sequence(context_ids, token_id):
+    """Append token_id as a new final column to context_ids of shape (1, T)."""
+    # TODO: return a (1, T+1) int array with token_id appended on the time axis
+    return np.hstack([ctx, np.array([[token_id]])])
+
+# Step 165 - generation_loop_for_n_steps
+def generation_loop_for_n_steps(params, prompt_ids, n_new_tokens, block_size,
+                                 temperature, top_k, rng):
+    ctx = prompt_ids
+
+    for _ in range(n_new_tokens):
+        cropped = crop_context_to_block_size(ctx, block_size)
+        logits  = forward_to_get_logits(params, cropped)
+        logits  = take_last_position_logits(logits)
+        logits  = apply_temperature(logits, temperature)
+        logits  = top_k_filter(logits, top_k)
+        probs   = softmax_to_probs(logits)
+        token   = sample_one_token(probs, rng)
+        ctx     = append_token_to_sequence(ctx, token)
+
+    return ctx
 
 # Step 166 - decode_final_sequence (not yet solved)
 # TODO: implement
