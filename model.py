@@ -1834,7 +1834,7 @@ import numpy as np
 def append_token_to_sequence(context_ids, token_id):
     """Append token_id as a new final column to context_ids of shape (1, T)."""
     # TODO: return a (1, T+1) int array with token_id appended on the time axis
-    return np.hstack([ctx, np.array([[token_id]])])
+    return np.column_stack([context_ids, np.array([[token_id]])])
 
 # Step 165 - generation_loop_for_n_steps
 def generation_loop_for_n_steps(params, prompt_ids, n_new_tokens, block_size,
